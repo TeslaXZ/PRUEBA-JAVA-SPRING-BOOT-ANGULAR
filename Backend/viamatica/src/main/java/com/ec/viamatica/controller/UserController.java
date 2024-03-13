@@ -28,12 +28,12 @@ public class UserController {
     }
 
     @PostMapping("login")
-    ResponseEntity<String> Login(@RequestBody LoginUserDTO loginUserDTO, HttpServletResponse httpServletResponse){
-            usuarioService.LoginUser(loginUserDTO, httpServletResponse);
-            return ResponseEntity.ok("Inicio de sesion Existoso");
+    ResponseEntity<CreatedUserResponseDTO> Login(@RequestBody LoginUserDTO loginUserDTO, HttpServletResponse httpServletResponse){
+            return ResponseEntity.ok(usuarioService.LoginUser(loginUserDTO, httpServletResponse));
     }
 
     @PutMapping("logout")
+    @Transactional
     ResponseEntity<String> logout(HttpServletRequest httpServletRequest, @RequestParam (name = "userId") Long userId){
         usuarioService.logout(userId,httpServletRequest);
         return ResponseEntity.ok("Cesion cerrada");

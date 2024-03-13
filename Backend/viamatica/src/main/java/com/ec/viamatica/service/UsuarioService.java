@@ -83,10 +83,9 @@ public class UsuarioService {
     public void deactivateUser(Long id) {
         Usuario usuario = findUserById(id);
         usuario.setStatus(Status.DEACTIVATE);
-
     }
 
-    public void LoginUser(LoginUserDTO loginUserDTO, HttpServletResponse httpServletResponse) {
+    public CreatedUserResponseDTO LoginUser(LoginUserDTO loginUserDTO, HttpServletResponse httpServletResponse) {
         Optional<Usuario> usuarioOptional = usuarioRepository
                 .findByUsernameOrEmailAndPassword(loginUserDTO.username(),
                 loginUserDTO.mail(),loginUserDTO.password());
@@ -116,6 +115,7 @@ public class UsuarioService {
         usuario.setSessionActive(true);
         usuario.setLoginAttempts(0);
         sessionService.starSession(usuario, httpServletResponse);
+        return new CreatedUserResponseDTO(usuario);
 
     }
     public void logout(Long id, HttpServletRequest request){
