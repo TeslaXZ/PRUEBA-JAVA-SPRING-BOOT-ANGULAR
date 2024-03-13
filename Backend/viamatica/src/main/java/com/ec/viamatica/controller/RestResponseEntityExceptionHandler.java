@@ -42,6 +42,11 @@ public class RestResponseEntityExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ex.getMessage());
     }
+    @ExceptionHandler(UserSessionException.class)
+    public ResponseEntity<Object> UserSessionException(UserSessionException ex){
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ex.getMessage());
+    }
 
 
 }

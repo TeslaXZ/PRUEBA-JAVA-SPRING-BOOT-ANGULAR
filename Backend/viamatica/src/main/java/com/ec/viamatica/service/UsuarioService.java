@@ -7,10 +7,7 @@ import com.ec.viamatica.dto.UpdateUserDto;
 import com.ec.viamatica.entities.Persona;
 import com.ec.viamatica.entities.Session;
 import com.ec.viamatica.entities.Usuario;
-import com.ec.viamatica.exceptions.IdentificacionException;
-import com.ec.viamatica.exceptions.NoUserFoundException;
-import com.ec.viamatica.exceptions.PasswordException;
-import com.ec.viamatica.exceptions.usernameException;
+import com.ec.viamatica.exceptions.*;
 import com.ec.viamatica.repositories.PersonaRepository;
 import com.ec.viamatica.repositories.UsuarioRepository;
 import com.ec.viamatica.utils.Status;
@@ -18,6 +15,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -94,15 +92,37 @@ public class UsuarioService {
                 loginUserDTO.mail(),loginUserDTO.password());
 
        if (usuarioOptional.isEmpty()) {
+           Usuario usuario= usuarioRepository.findByUsernameOrMail(loginUserDTO.username(),loginUserDTO.username());
+           System.out.println(usuario.getUsername());
+           if (usuario != null){
+               usuario.setLoginAttempts(usuario.getLoginAttempts() + 1);
+               System.out.println("nos es null");
+               if(usuario.getLoginAttempts() > 3){
+                   usuario.setStatus(Status.DEACTIVATE);
+                   throw new UserSessionException("Usuario bloqueado de despues de 3 intentos");
+               }
+               usuarioRepository.save(usuario);
+           }
            throw new NoUserFoundException("Credenciales Incorrectas");
        }
+
        Usuario usuario = usuarioOptional.get();
+       if(usuario.isSessionActive()){
+           throw new UserSessionException("Ya tiene una sesion iniciada");
+       }
+       if(usuario.getLoginAttempts() > 3){
+           throw new UserSessionException("Su usuario ha sido bloqueado por muchos intentos fallidos");
+       }
         usuario.setSessionActive(true);
+        usuario.setLoginAttempts(0);
         sessionService.starSession(usuario, httpServletResponse);
 
     }
     public void logout(Long id, HttpServletRequest request){
         Usuario usuario = findUserById(id);
+        if(!usuario.isSessionActive()){
+            throw new UserSessionException("No tiene sesion iniciada");
+        }
         usuario.setSessionActive(false);
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {

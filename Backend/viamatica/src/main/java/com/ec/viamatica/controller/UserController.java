@@ -6,6 +6,7 @@ import com.ec.viamatica.dto.LoginUserDTO;
 import com.ec.viamatica.dto.UpdateUserDto;
 import com.ec.viamatica.service.UsuarioService;
 import com.ec.viamatica.utils.Status;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -26,9 +27,16 @@ public class UserController {
         return ResponseEntity.ok(usuarioService.createUsuario(usuarioDTO));
     }
 
-    @PostMapping ResponseEntity<String> Login(@RequestBody LoginUserDTO loginUserDTO, HttpServletResponse httpServletResponse){
+    @PostMapping("login")
+    ResponseEntity<String> Login(@RequestBody LoginUserDTO loginUserDTO, HttpServletResponse httpServletResponse){
             usuarioService.LoginUser(loginUserDTO, httpServletResponse);
             return ResponseEntity.ok("Inicio de sesion Existoso");
+    }
+
+    @PutMapping("logout")
+    ResponseEntity<String> logout(HttpServletRequest httpServletRequest, @RequestParam (name = "userId") Long userId){
+        usuarioService.logout(userId,httpServletRequest);
+        return ResponseEntity.ok("Cesion cerrada");
     }
     @GetMapping("/All")
     public ResponseEntity <Page<CreatedUserResponseDTO>> getAllUsers(@RequestParam(name = "status",required = false) Status status, Pageable pageable){

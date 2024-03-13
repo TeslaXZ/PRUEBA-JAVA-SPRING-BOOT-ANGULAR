@@ -35,4 +35,5 @@ public class Usuario {
     private Status status;
     @OneToMany(mappedBy = "usuario")
     private List<Session> session;
+    private Integer loginAttempts = 0;
 }

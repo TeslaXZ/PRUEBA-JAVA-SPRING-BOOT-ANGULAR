@@ -1,6 +1,7 @@
 package com.ec.viamatica.dto;
 
 import com.ec.viamatica.entities.Rol;
+import com.ec.viamatica.entities.Session;
 import com.ec.viamatica.entities.Usuario;
 import com.ec.viamatica.utils.Status;
 
@@ -17,6 +18,8 @@ public record CreatedUserResponseDTO(
         String username,
         String mail,
         List<String> roles,
+        Boolean IsSessionActive,
+        List<Session> sessions,
         Status status
 
 
@@ -28,6 +31,8 @@ public record CreatedUserResponseDTO(
                 usuario.getPersona().getFechaDeNacimiento(),
                 usuario.getUsername(),
                 usuario.getMail(), usuario.getRoles().stream().map(Rol::getName).toList(),
+                usuario.isSessionActive(),
+                usuario.getSession(),
                 usuario.getStatus()
                 );
     }

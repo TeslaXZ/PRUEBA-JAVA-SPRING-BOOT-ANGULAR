@@ -15,7 +15,6 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class SessionService {
     private final SessionRepository sessionRepository;
-    private final UsuarioService usuarioService;
 
     public void starSession(Usuario usuario, HttpServletResponse httpServletResponse){
         Session session = new Session();
