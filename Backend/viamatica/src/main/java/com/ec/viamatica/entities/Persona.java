@@ -21,6 +21,6 @@ public class Persona {
     private String apellidos;
     private String identificacion;
     private LocalDateTime fechaDeNacimiento;
-    @OneToMany(mappedBy = "persona")
-    private List<Usuario> usuario;
+    @OneToOne(mappedBy = "persona")
+    private Usuario usuario;
 }

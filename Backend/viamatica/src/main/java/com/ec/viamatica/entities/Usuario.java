@@ -21,7 +21,7 @@ public class Usuario {
     private String password;
     private String mail;
     private boolean sessionActive;
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "persona_id")
     private Persona persona;
     @ManyToMany
