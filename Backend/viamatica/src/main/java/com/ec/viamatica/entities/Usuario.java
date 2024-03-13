@@ -4,6 +4,8 @@ import com.ec.viamatica.utils.Status;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 @Entity
 @Table(name = "usuarios")
 @NoArgsConstructor
@@ -22,6 +24,15 @@ public class Usuario {
     @ManyToOne
     @JoinColumn(name = "persona_id")
     private Persona persona;
+    @ManyToMany
+    @JoinTable(
+            name = "usuario_rol", //
+            joinColumns = @JoinColumn(name = "usuario_id"),
+            inverseJoinColumns = @JoinColumn(name = "rol_id")
+    )
+    private List<Rol> roles;
     @Enumerated(EnumType.STRING)
     private Status status;
+    @OneToMany(mappedBy = "usuario")
+    private List<Session> session;
 }
