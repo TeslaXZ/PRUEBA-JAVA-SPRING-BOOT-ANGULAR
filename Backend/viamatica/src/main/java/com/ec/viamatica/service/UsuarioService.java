@@ -92,10 +92,8 @@ public class UsuarioService {
 
        if (usuarioOptional.isEmpty()) {
            Usuario usuario= usuarioRepository.findByUsernameOrMail(loginUserDTO.username(),loginUserDTO.username());
-           System.out.println(usuario.getUsername());
            if (usuario != null){
                usuario.setLoginAttempts(usuario.getLoginAttempts() + 1);
-               System.out.println("nos es null");
                if(usuario.getLoginAttempts() > 3){
                    usuario.setStatus(Status.DEACTIVATE);
                    throw new UserSessionException("Usuario bloqueado de despues de 3 intentos");
