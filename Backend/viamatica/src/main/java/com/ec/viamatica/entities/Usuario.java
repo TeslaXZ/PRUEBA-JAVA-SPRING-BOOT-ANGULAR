@@ -2,8 +2,13 @@ package com.ec.viamatica.entities;
 
 import com.ec.viamatica.utils.Status;
 import jakarta.persistence.*;
+import jakarta.transaction.Transactional;
 import lombok.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.Collection;
 import java.util.List;
 
 @Entity
@@ -13,7 +18,7 @@ import java.util.List;
 @EqualsAndHashCode(of = "id")
 @Setter
 @Getter
-public class Usuario {
+public class Usuario implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -24,7 +29,7 @@ public class Usuario {
     @OneToOne
     @JoinColumn(name = "persona_id")
     private Persona persona;
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "usuario_rol", //
             joinColumns = @JoinColumn(name = "usuario_id"),
@@ -36,4 +41,30 @@ public class Usuario {
     @OneToMany(mappedBy = "usuario")
     private List<Session> session;
     private Integer loginAttempts = 0;
+
+    @Override
+    @Transactional
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority(getRoles().stream().findFirst().get().getName()));
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
 }

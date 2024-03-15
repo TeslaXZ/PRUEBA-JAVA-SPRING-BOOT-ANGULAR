@@ -1,9 +1,6 @@
 package com.ec.viamatica.controller;
 
-import com.ec.viamatica.dto.CreateUsuarioDTO;
-import com.ec.viamatica.dto.CreatedUserResponseDTO;
-import com.ec.viamatica.dto.LoginUserDTO;
-import com.ec.viamatica.dto.UpdateUserDto;
+import com.ec.viamatica.dto.*;
 import com.ec.viamatica.service.UsuarioService;
 import com.ec.viamatica.utils.Status;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,14 +25,14 @@ public class UserController {
     }
 
     @PostMapping("login")
-    ResponseEntity<CreatedUserResponseDTO> Login(@RequestBody LoginUserDTO loginUserDTO, HttpServletResponse httpServletResponse){
+    ResponseEntity<JwtTokenDTO> Login(@RequestBody LoginUserDTO loginUserDTO, HttpServletResponse httpServletResponse){
             return ResponseEntity.ok(usuarioService.LoginUser(loginUserDTO, httpServletResponse));
     }
 
     @PutMapping("logout")
     @Transactional
-    ResponseEntity<String> logout(HttpServletRequest httpServletRequest, @RequestParam (name = "userId") Long userId){
-        usuarioService.logout(userId,httpServletRequest);
+    ResponseEntity<String> logout(HttpServletRequest httpServletRequest){
+        usuarioService.logout(httpServletRequest);
         return ResponseEntity.ok("Cesion cerrada");
     }
     @GetMapping("/All")

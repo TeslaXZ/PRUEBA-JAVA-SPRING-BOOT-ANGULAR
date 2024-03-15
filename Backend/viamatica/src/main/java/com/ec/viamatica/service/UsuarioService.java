@@ -1,9 +1,6 @@
 package com.ec.viamatica.service;
 
-import com.ec.viamatica.dto.CreateUsuarioDTO;
-import com.ec.viamatica.dto.CreatedUserResponseDTO;
-import com.ec.viamatica.dto.LoginUserDTO;
-import com.ec.viamatica.dto.UpdateUserDto;
+import com.ec.viamatica.dto.*;
 import com.ec.viamatica.entities.Persona;
 import com.ec.viamatica.entities.Session;
 import com.ec.viamatica.entities.Usuario;
@@ -19,6 +16,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -31,6 +30,7 @@ public class UsuarioService {
     private final PersonaRepository personaRepository;
     private final RolService rolService;
     private final SessionService sessionService;
+    private final JwtService jwtService;
 
 
     public String createUsuario(CreateUsuarioDTO usuarioDTO){
@@ -85,7 +85,7 @@ public class UsuarioService {
         usuario.setStatus(Status.DEACTIVATE);
     }
 
-    public CreatedUserResponseDTO LoginUser(LoginUserDTO loginUserDTO, HttpServletResponse httpServletResponse) {
+    public JwtTokenDTO LoginUser(LoginUserDTO loginUserDTO, HttpServletResponse httpServletResponse) {
         Optional<Usuario> usuarioOptional = usuarioRepository
                 .findByUsernameOrEmailAndPassword(loginUserDTO.username(),
                 loginUserDTO.mail(),loginUserDTO.password());
@@ -113,11 +113,12 @@ public class UsuarioService {
         usuario.setSessionActive(true);
         usuario.setLoginAttempts(0);
         sessionService.starSession(usuario, httpServletResponse);
-        return new CreatedUserResponseDTO(usuario);
+        String token = jwtService.getToken(usuario);
+        return new JwtTokenDTO(token);
 
     }
-    public void logout(Long id, HttpServletRequest request){
-        Usuario usuario = findUserById(id);
+    public void logout(HttpServletRequest request){
+        Usuario usuario = findUserByUsername();
         if(!usuario.isSessionActive()){
             throw new UserSessionException("No tiene sesion iniciada");
         }
@@ -140,6 +141,15 @@ public class UsuarioService {
         }catch (EntityNotFoundException ex) {
             throw new EntityNotFoundException("El id " + id + " no existe para ningun usuario");
         }
+    }
+
+    private Usuario findUserByUsername(){
+        String username = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Optional<UserDetails> userOptional = usuarioRepository.findByUsername(username);
+        if (userOptional.isEmpty()) {
+            throw new EntityNotFoundException("user not found");
+        }
+        return  (Usuario) userOptional.get();
     }
 
     private String createUserMail(Persona persona) {
