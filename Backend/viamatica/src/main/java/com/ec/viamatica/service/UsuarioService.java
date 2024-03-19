@@ -16,8 +16,11 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -31,6 +34,8 @@ public class UsuarioService {
     private final RolService rolService;
     private final SessionService sessionService;
     private final JwtService jwtService;
+    private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
 
 
     public String createUsuario(CreateUsuarioDTO usuarioDTO){
@@ -87,23 +92,22 @@ public class UsuarioService {
 
     public JwtTokenDTO LoginUser(LoginUserDTO loginUserDTO, HttpServletResponse httpServletResponse) {
         Optional<Usuario> usuarioOptional = usuarioRepository
-                .findByUsernameOrEmailAndPassword(loginUserDTO.username(),
-                loginUserDTO.mail(),loginUserDTO.password());
-
-       if (usuarioOptional.isEmpty()) {
-           Usuario usuario= usuarioRepository.findByUsernameOrMail(loginUserDTO.username(),loginUserDTO.username());
-           if (usuario != null){
+                .findByUsernameOrMail(loginUserDTO.username(),
+                loginUserDTO.mail());
+        if (usuarioOptional.isEmpty()) {
+            throw new NoUserFoundException("Credenciales Incorrectas");
+        }
+        Usuario usuario = usuarioOptional.get();
+       if (!passwordEncoder.matches(loginUserDTO.password(), usuario.getPassword())) {
                usuario.setLoginAttempts(usuario.getLoginAttempts() + 1);
                if(usuario.getLoginAttempts() > 3){
                    usuario.setStatus(Status.DEACTIVATE);
                    throw new UserSessionException("Usuario bloqueado de despues de 3 intentos");
                }
                usuarioRepository.save(usuario);
-           }
+
            throw new NoUserFoundException("Credenciales Incorrectas");
        }
-
-       Usuario usuario = usuarioOptional.get();
        if(usuario.isSessionActive()){
            throw new UserSessionException("Ya tiene una sesion iniciada");
        }
@@ -230,7 +234,8 @@ public class UsuarioService {
        if (!password.matches(".*\\p{Punct}.*")) {
            throw new PasswordException("La contraseña debe contener al menos un caracter especial");
        }
-       return password;
+
+       return passwordEncoder.encode(password);
    }
 
 
